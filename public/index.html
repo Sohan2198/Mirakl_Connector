@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopify-Mirakl Integration Hub</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <div class="logo-icon">
+            <i class="bi bi-shuffle"></i>
+          </div>
+          <div>
+            <h1>SyncHub</h1>
+            <span class="sub-logo">Shopify-Mirakl</span>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-item active" data-tab="dashboard">
+              <i class="bi bi-grid-1x2-fill"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="monitor">
+              <i class="bi bi-arrow-left-right"></i>
+              <span>Sync Monitor</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="explorer">
+              <i class="bi bi-folder-fill"></i>
+              <span>File Explorer</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="products">
+              <i class="bi bi-bag-check-fill"></i>
+              <span>Shopify Products</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="offers">
+              <i class="bi bi-tags-fill"></i>
+              <span>Mirakl Offers</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="orders">
+              <i class="bi bi-cart-fill"></i>
+              <span>Mirakl Orders</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="settings">
+              <i class="bi bi-gear-fill"></i>
+              <span>Sync Settings</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="logs">
+              <i class="bi bi-terminal-fill"></i>
+              <span>System Logs</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="connection-status-panel">
+          <div class="status-title">Connection Status</div>
+          <div class="status-item" id="shopify-status-indicator">
+            <span class="status-dot status-loading"></span>
+            <span class="status-text">Shopify: Checking...</span>
+          </div>
+          <div class="status-item" id="mirakl-status-indicator">
+            <span class="status-dot status-loading"></span>
+            <span class="status-text">Mirakl: Checking...</span>
+          </div>
+        </div>
+        <button id="refresh-status-btn" class="btn btn-secondary btn-sm">
+          <i class="bi bi-arrow-clockwise"></i> Refresh Status
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navigation / Header -->
+      <header class="top-header">
+        <div class="breadcrumb-container">
+          <span class="breadcrumb-active" id="current-view-title">Dashboard</span>
+        </div>
+        <div class="header-actions">
+          <button id="trigger-sync-menu-btn" class="btn btn-primary">
+            <i class="bi bi-lightning-charge-fill"></i> Quick Sync <i class="bi bi-chevron-down ms-1"></i>
+          </button>
+          <div class="dropdown-menu" id="sync-dropdown">
+            <a href="#" class="dropdown-item" id="sync-products-action">
+              <i class="bi bi-bag-plus"></i> Sync Shopify Products to Mirakl
+            </a>
+            <a href="#" class="dropdown-item" id="sync-inventory-action">
+              <i class="bi bi-boxes"></i> Sync Inventory Levels to Mirakl
+            </a>
+            <a href="#" class="dropdown-item" id="sync-orders-action">
+              <i class="bi bi-cart-check"></i> Pull Mirakl Orders to Shopify
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Pages -->
+      <div class="page-container">
+        
+        <!-- View: Dashboard -->
+        <section id="view-dashboard" class="tab-content active">
+          <div class="dashboard-grid">
+            
+            <!-- Cards Section -->
+            <div class="kpi-grid">
+              <div class="kpi-card glass">
+                <div class="kpi-icon icon-shopify">
+                  <i class="bi bi-bag"></i>
+                </div>
+                <div class="kpi-details">
+                  <h3>Shopify Products</h3>
+                  <div class="kpi-val" id="kpi-products-count">...</div>
+                  <p class="kpi-sub">Available in store catalog</p>
+                </div>
+              </div>
+              <div class="kpi-card glass">
+                <div class="kpi-icon icon-mirakl-offers">
+                  <i class="bi bi-tags"></i>
+                </div>
+                <div class="kpi-details">
+                  <h3>Mirakl Offers</h3>
+                  <div class="kpi-val" id="kpi-offers-count">...</div>
+                  <p class="kpi-sub">Synced marketplace listings</p>
+                </div>
+              </div>
+              <div class="kpi-card glass">
+                <div class="kpi-icon icon-mirakl-orders">
+                  <i class="bi bi-cart"></i>
+                </div>
+                <div class="kpi-details">
+                  <h3>Pending Orders</h3>
+                  <div class="kpi-val" id="kpi-orders-count">...</div>
+                  <p class="kpi-sub">Waiting for acceptance</p>
+                </div>
+              </div>
+              <div class="kpi-card glass">
+                <div class="kpi-icon icon-settings">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="kpi-details">
+                  <h3>Sync Interval</h3>
+                  <div class="kpi-val" id="kpi-sync-interval">15m</div>
+                  <p class="kpi-sub">Automated inventory sync</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Platform Health Checks -->
+            <div class="row-layout">
+              
+              <!-- Mirakl Config Status -->
+              <div class="panel-card glass half-width">
+                <div class="panel-header">
+                  <h2><i class="bi bi-cloud-check-fill icon-mirakl"></i> Nordstrom Mirakl API Connection</h2>
+                  <span class="status-badge" id="mirakl-badge">Checking...</span>
+                </div>
+                <div class="panel-body">
+                  <ul class="info-list">
+                    <li>
+                      <span class="label">API Base URL:</span>
+                      <span class="value" id="mirakl-info-url">...</span>
+                    </li>
+                    <li>
+                      <span class="label">Shop Name:</span>
+                      <span class="value" id="mirakl-info-name">...</span>
+                    </li>
+                    <li>
+                      <span class="label">Shop ID:</span>
+                      <span class="value" id="mirakl-info-id">...</span>
+                    </li>
+                    <li>
+                      <span class="label">API Key:</span>
+                      <span class="value font-mono">••••••••••••••••••••</span>
+                    </li>
+                  </ul>
+                  <div class="api-feedback-msg error-msg hidden" id="mirakl-conn-error"></div>
+                </div>
+              </div>
+
+              <!-- Shopify Config Status -->
+              <div class="panel-card glass half-width">
+                <div class="panel-header">
+                  <h2><i class="bi bi-cloud-check-fill icon-shopify"></i> Shopify API Connection</h2>
+                  <span class="status-badge" id="shopify-badge">Checking...</span>
+                </div>
+                <div class="panel-body">
+                  <ul class="info-list">
+                    <li>
+                      <span class="label">Shop URL:</span>
+                      <span class="value" id="shopify-info-url">...</span>
+                    </li>
+                    <li>
+                      <span class="label">Locations Found:</span>
+                      <span class="value" id="shopify-info-locations">...</span>
+                    </li>
+                    <li>
+                      <span class="label">API Version:</span>
+                      <span class="value font-mono">2026-04</span>
+                    </li>
+                    <li>
+                      <span class="label">Access Token:</span>
+                      <span class="value font-mono">••••••••••••••••••••</span>
+                    </li>
+                  </ul>
+                  <div class="api-feedback-msg error-msg hidden" id="shopify-conn-error"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Sync Controls Section -->
+            <div class="panel-card glass">
+              <div class="panel-header">
+                <h2><i class="bi bi-gear-wide-connected text-primary"></i> Manual Action Center</h2>
+              </div>
+              <div class="panel-body">
+                <div class="action-grid">
+                  
+                  <div class="action-card">
+                    <div class="action-info">
+                      <h3>Sync Products</h3>
+                      <p>Read all Shopify items and push them as offers to Mirakl. Creates new offers and updates titles/prices.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-sync-products">
+                      <i class="bi bi-cloud-arrow-up-fill"></i> Sync Products
+                    </button>
+                  </div>
+
+                  <div class="action-card">
+                    <div class="action-info">
+                      <h3>Sync Inventory</h3>
+                      <p>Update quantities on Mirakl based on Shopify active inventory levels. Keeps stock in perfect alignment.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-sync-inventory">
+                      <i class="bi bi-arrow-repeat"></i> Sync Inventory
+                    </button>
+                  </div>
+
+                  <div class="action-card">
+                    <div class="action-info">
+                      <h3>Pull Orders</h3>
+                      <p>Scan Mirakl for orders in 'WAITING_ACCEPTANCE' state, create them in Shopify, and accept them on Mirakl.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-sync-orders">
+                      <i class="bi bi-cloud-arrow-down-fill"></i> Import Orders
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- View: File Explorer -->
+        <section id="view-explorer" class="tab-content">
+          <div class="explorer-layout glass">
+            <!-- Sidebar: File Tree -->
+            <div class="explorer-sidebar">
+              <div class="explorer-header-sm">
+                <span>PROJECT FILES</span>
+                <button id="refresh-tree-btn" class="icon-btn" title="Refresh files"><i class="bi bi-arrow-clockwise"></i></button>
+              </div>
+              <div id="file-tree" class="file-tree">
+                <!-- Populated dynamically -->
+                <div class="loading-spinner-center"><div class="spinner"></div></div>
+              </div>
+            </div>
+            <!-- Main: Code Viewer -->
+            <div class="code-viewer-container">
+              <div class="code-viewer-header">
+                <div class="file-title">
+                  <i class="bi bi-file-earmark-code" id="active-file-icon"></i>
+                  <span id="active-file-path">Select a file to view or edit</span>
+                </div>
+                <div class="code-actions">
+                  <button id="edit-file-btn" class="btn btn-secondary btn-sm" disabled>
+                    <i class="bi bi-pencil-square"></i> Edit
+                  </button>
+                  <button id="save-file-btn" class="btn btn-success btn-sm hidden">
+                    <i class="bi bi-check-lg"></i> Save Changes
+                  </button>
+                  <button id="cancel-edit-btn" class="btn btn-secondary btn-sm hidden">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+              <div class="code-editor-area">
+                <!-- Textarea for editing, pre/code for display -->
+                <div id="code-display-wrapper" class="code-display-wrapper">
+                  <pre><code id="code-content" class="language-js"></code></pre>
+                </div>
+                <textarea id="code-edit-area" class="code-edit-area hidden" spellcheck="false"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Product Sync Monitor -->
+        <section id="view-monitor" class="tab-content">
+          <!-- Summary Cards / Filters -->
+          <div class="monitor-summary-bar glass mb-4">
+            <div class="summary-stat">
+              <span class="stat-num text-success" id="monitor-count-synced">0</span>
+              <span class="stat-label">Synced</span>
+            </div>
+            <div class="summary-stat-divider"></div>
+            <div class="summary-stat">
+              <span class="stat-num text-warning" id="monitor-count-mismatches">0</span>
+              <span class="stat-label">Discrepancies</span>
+            </div>
+            <div class="summary-stat-divider"></div>
+            <div class="summary-stat">
+              <span class="stat-num text-info" id="monitor-count-shopify-only">0</span>
+              <span class="stat-label">Shopify Only</span>
+            </div>
+            <div class="summary-stat-divider"></div>
+            <div class="summary-stat">
+              <span class="stat-num text-accent" id="monitor-count-mirakl-only">0</span>
+              <span class="stat-label">Mirakl Only</span>
+            </div>
+          </div>
+
+          <div class="panel-card glass">
+            <div class="panel-header search-header">
+              <h2>Unified Product Sync Monitor</h2>
+              <div class="header-filters">
+                <div class="search-box me-3">
+                  <i class="bi bi-search"></i>
+                  <input type="text" id="search-monitor" placeholder="Search by SKU or Title...">
+                </div>
+                <select id="filter-monitor-status" class="form-control-sm">
+                  <option value="all">All Sync Statuses</option>
+                  <option value="synced">Synced Only</option>
+                  <option value="mismatch">Discrepancies Only</option>
+                  <option value="shopify_only">Only on Shopify</option>
+                  <option value="mirakl_only">Only on Mirakl</option>
+                </select>
+                <button id="btn-sync-all-mismatched" class="btn btn-primary btn-sm ms-3">
+                  <i class="bi bi-arrow-repeat"></i> Sync Mismatched
+                </button>
+              </div>
+            </div>
+            <div class="panel-body table-responsive">
+              <table class="data-table" id="table-monitor">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Shopify Price</th>
+                    <th>Mirakl Price</th>
+                    <th>Shopify Stock</th>
+                    <th>Mirakl Stock</th>
+                    <th>Sync Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+              <div id="no-monitor-msg" class="table-empty hidden">No products matching the filters found.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Shopify Products -->
+        <section id="view-products" class="tab-content">
+          <div class="panel-card glass">
+            <div class="panel-header search-header">
+              <h2>Shopify Product Catalog</h2>
+              <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-products" placeholder="Search by Title or SKU...">
+              </div>
+            </div>
+            <div class="panel-body table-responsive">
+              <table class="data-table" id="table-products">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Inventory</th>
+                    <th>Variants</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+              <div id="no-products-msg" class="table-empty hidden">No products found.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Mirakl Offers -->
+        <section id="view-offers" class="tab-content">
+          <div class="panel-card glass">
+            <div class="panel-header search-header">
+              <h2>Mirakl Market Offers</h2>
+              <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-offers" placeholder="Search by SKU or Title...">
+              </div>
+            </div>
+            <div class="panel-body table-responsive">
+              <table class="data-table" id="table-offers">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Product Title</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>State</th>
+                    <th>Available Start</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+              <div id="no-offers-msg" class="table-empty hidden">No offers found.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Mirakl Orders -->
+        <section id="view-orders" class="tab-content">
+          <div class="panel-card glass">
+            <div class="panel-header search-header">
+              <h2>Mirakl Marketplace Orders</h2>
+              <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-orders" placeholder="Search by Order ID or Customer...">
+              </div>
+            </div>
+            <div class="panel-body table-responsive">
+              <table class="data-table" id="table-orders">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Email</th>
+                    <th>Lines</th>
+                    <th>Total Price</th>
+                    <th>Order Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+              <div id="no-orders-msg" class="table-empty hidden">No orders found.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: System Logs -->
+        <section id="view-logs" class="tab-content">
+          <div class="panel-card glass log-panel">
+            <div class="panel-header">
+              <h2>Sync Execution Terminal</h2>
+              <div class="log-actions">
+                <div class="filter-group">
+                  <button class="btn btn-secondary btn-sm active" data-log-filter="all">All</button>
+                  <button class="btn btn-secondary btn-sm" data-log-filter="info">Info</button>
+                  <button class="btn btn-secondary btn-sm" data-log-filter="success">Success</button>
+                  <button class="btn btn-secondary btn-sm" data-log-filter="error">Errors</button>
+                </div>
+                <button id="clear-logs-btn" class="btn btn-danger btn-sm">
+                  <i class="bi bi-trash"></i> Clear Console
+                </button>
+              </div>
+            </div>
+            <div class="panel-body no-padding">
+              <div id="log-terminal" class="log-terminal">
+                <!-- Log entries added here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View: Settings -->
+        <section id="view-settings" class="tab-content">
+          <div class="panel-card glass">
+            <div class="panel-header">
+              <h2><i class="bi bi-sliders text-primary"></i> Integration Settings</h2>
+              <button id="save-settings-btn" class="btn btn-success">
+                <i class="bi bi-save-fill"></i> Save Configuration
+              </button>
+            </div>
+            <div class="panel-body">
+              <form id="settings-form" class="settings-form" onsubmit="return false;">
+                
+                <div class="form-section">
+                  <h3><i class="bi bi-shuffle text-accent"></i> Synchronization Filter</h3>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="setting-shopify-status">Shopify Product Sync Status</label>
+                      <select id="setting-shopify-status" class="form-control">
+                        <option value="active">Active Only (Recommended)</option>
+                        <option value="draft">Draft Only</option>
+                        <option value="archived">Archived Only</option>
+                        <option value="any">All (Active, Draft, Archived)</option>
+                      </select>
+                      <p class="form-help">Determine which products from Shopify are synced to Mirakl. Active is highly recommended.</p>
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-sync-interval">Sync Interval (Minutes)</label>
+                      <input type="number" id="setting-sync-interval" class="form-control" min="1" max="1440" value="15">
+                      <p class="form-help">How often automated inventory levels are synchronized back to Mirakl.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section-divider"></div>
+
+                <div class="form-section">
+                  <h3><i class="bi bi-shop icon-shopify"></i> Shopify Credentials</h3>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="setting-shopify-url">Shop URL</label>
+                      <input type="text" id="setting-shopify-url" class="form-control" placeholder="example.myshopify.com">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-shopify-version">API Version</label>
+                      <input type="text" id="setting-shopify-version" class="form-control" placeholder="2026-04">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-shopify-token">Access Token</label>
+                      <input type="password" id="setting-shopify-token" class="form-control" placeholder="shpat_...">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-shopify-client-id">Client ID (API Key)</label>
+                      <input type="text" id="setting-shopify-client-id" class="form-control" placeholder="Optional Client ID">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-shopify-client-secret">Client Secret</label>
+                      <input type="password" id="setting-shopify-client-secret" class="form-control" placeholder="Optional Client Secret">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section-divider"></div>
+
+                <div class="form-section">
+                  <h3><i class="bi bi-tag-fill icon-mirakl"></i> Mirakl Credentials</h3>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="setting-mirakl-url">Mirakl API URL</label>
+                      <input type="text" id="setting-mirakl-url" class="form-control" placeholder="https://api-url.mirakl.net">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-mirakl-key">Mirakl API Key</label>
+                      <input type="password" id="setting-mirakl-key" class="form-control" placeholder="Mirakl API Key">
+                    </div>
+                    <div class="form-group">
+                      <label for="setting-mirakl-shop-id">Shop ID</label>
+                      <input type="text" id="setting-mirakl-shop-id" class="form-control" placeholder="Optional Shop ID">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section-divider"></div>
+
+                <div class="form-section">
+                  <h3><i class="bi bi-server text-cyan"></i> Server Configuration</h3>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="setting-server-port">Server Port</label>
+                      <input type="number" id="setting-server-port" class="form-control" min="80" max="65535" value="3000">
+                    </div>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toast">
+    <i class="bi bi-info-circle-fill" id="toast-icon"></i>
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <!-- Modal / Overlay for Sync execution -->
+  <div class="modal-overlay" id="sync-modal">
+    <div class="modal-card glass">
+      <div class="modal-header">
+        <h3 id="modal-title">Executing Synchronization</h3>
+        <button class="icon-btn" id="close-modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="progress-spinner-container">
+          <div class="spinner spinner-lg"></div>
+        </div>
+        <p class="modal-status-text" id="modal-status-text">Connecting to servers and processing data...</p>
+        <div class="sync-results-box hidden" id="modal-results">
+          <h4>Sync Result Summary:</h4>
+          <pre id="modal-results-text"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
