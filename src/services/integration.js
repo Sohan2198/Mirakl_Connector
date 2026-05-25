@@ -8,12 +8,11 @@ class IntegrationSync {
     this.shopify = shopifyClient;
   }
 
-  // Sync products from Shopify to Mirakl
+  // Sync products from Shopify to Mirakl (two-step: products first, then offers)
   async syncProductsToMirakl() {
     addLog('Starting product sync to Mirakl...', 'info');
     
     try {
-      // Get all products from Shopify
       const statusFilter = process.env.SHOPIFY_PRODUCT_STATUS || 'active';
       const params = { limit: 250 };
       if (statusFilter && statusFilter !== 'any') {
@@ -22,49 +21,73 @@ class IntegrationSync {
       const products = await this.shopify.getProducts(params);
       addLog(`Found ${products.length} products in Shopify (status: ${statusFilter})`, 'info');
 
+      const productDefs = [];
       const offers = [];
 
       for (const product of products) {
         for (const variant of product.variants) {
-          // Skip variants without SKU
           if (!variant.sku) {
             addLog(`Skipping variant ${variant.id} - no SKU`, 'info');
             continue;
           }
 
-          const offer = {
+          // Step 1 payload: product catalog entry
+          productDefs.push({
+            'product-sku': variant.sku,
+            'product-title': product.title + (variant.title !== 'Default Title' ? ` - ${variant.title}` : ''),
+            'description': product.body_html || product.title,
+            'brand': product.vendor || '',
+            'update-delete': 'update'
+          });
+
+          // Step 2 payload: seller offer (price + stock)
+          offers.push({
+            'sku': variant.sku,
             'product-id': variant.sku,
             'product-id-type': 'SHOP_SKU',
-            'quantity': variant.inventory_quantity || 0,
             'price': variant.price,
-            'description': product.body_html || product.title,
-            'state-code': 11, // New product state
+            'quantity': variant.inventory_quantity || 0,
+            'state-code': 11,
             'available-start-date': new Date().toISOString().split('T')[0],
-            'product-title': product.title,
-            'variant-title': variant.title !== 'Default Title' ? variant.title : '',
+            'description': product.body_html || product.title,
             'update-delete': 'update'
-          };
+          });
 
-          offers.push(offer);
-          addLog(`Prepared offer for SKU: ${variant.sku}`, 'info');
+          addLog(`Prepared product+offer for SKU: ${variant.sku}`, 'info');
         }
       }
 
-      if (offers.length > 0) {
-        // Mirakl accepts batch updates
-        const result = await this.mirakl.upsertOffer({ offers });
-        addLog(`✅ Synced ${offers.length} products to Mirakl`, 'success');
-        return result;
-      } else {
+      if (offers.length === 0) {
         addLog('No products to sync', 'info');
         return null;
       }
+
+      // Step 1: Import products into Mirakl catalog (P41)
+      // On operator-managed marketplaces (like Nordstrom), this submits products
+      // for approval. Mirakl will reject this if P41 is not enabled for sellers,
+      // but we try gracefully and always attempt the offer import.
+      addLog(`Submitting ${productDefs.length} product definitions to Mirakl catalog...`, 'info');
+      const productResult = await this.mirakl.importProducts(productDefs);
+      if (productResult.skipped) {
+        addLog('ℹ️ Product catalog import not available (operator-managed catalog). Proceeding with offer import.', 'info');
+      } else {
+        addLog(`Product import: ${productResult.lines_in_success} ok, ${productResult.lines_in_error} errors.`, 
+          productResult.lines_in_error > 0 ? 'error' : 'success');
+      }
+
+      // Step 2: Import offers (price + stock) for each SKU
+      addLog(`Submitting ${offers.length} offers to Mirakl...`, 'info');
+      const result = await this.mirakl.upsertOffer({ offers });
+      addLog(`✅ Offer sync done: ${result.lines_in_success} synced, ${result.lines_in_error} errors.`,
+        result.lines_in_success > 0 ? 'success' : 'error');
+      return result;
 
     } catch (error) {
       addLog(`❌ Error syncing products to Mirakl: ${error.message}`, 'error');
       throw error;
     }
   }
+
 
   // Sync orders from Mirakl to Shopify
   async syncOrdersFromMirakl() {
@@ -164,6 +187,7 @@ class IntegrationSync {
         for (const variant of product.variants) {
           if (variant.sku) {
             offers.push({
+              'sku': variant.sku,
               'product-id': variant.sku,
               'product-id-type': 'SHOP_SKU',
               'quantity': variant.inventory_quantity || 0,
