@@ -103,9 +103,21 @@ const elements = {
   logFilters: document.querySelectorAll('[data-log-filter]')
 };
 
+// ── Utility: escape HTML to prevent XSS ──────────────────────────────────────
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Initial Setup
 document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
+  setupMobileMenu();
   setupConnectionChecks();
   setupSyncTriggers();
   setupSyncMonitor();
@@ -142,18 +154,52 @@ function setupNavigation() {
       e.preventDefault();
       const tab = item.getAttribute('data-tab');
       switchTab(tab);
+      // Close sidebar on mobile after navigation
+      closeSidebar();
     });
   });
   
   // Sync dropdown toggle
   elements.triggerSyncMenuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    elements.syncDropdown.classList.toggle('show');
+    const isOpen = elements.syncDropdown.classList.toggle('show');
+    elements.triggerSyncMenuBtn.setAttribute('aria-expanded', isOpen);
   });
   
   document.addEventListener('click', () => {
     elements.syncDropdown.classList.remove('show');
+    elements.triggerSyncMenuBtn.setAttribute('aria-expanded', 'false');
   });
+}
+
+// ── Mobile Sidebar (hamburger) ────────────────────────────────────────────────
+function setupMobileMenu() {
+  const hamburgerBtn = document.getElementById('hamburger-btn');
+  const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const sidebar = document.getElementById('sidebar');
+
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('show');
+    });
+  }
+
+  if (sidebarCloseBtn) {
+    sidebarCloseBtn.addEventListener('click', closeSidebar);
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeSidebar);
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (sidebarOverlay) sidebarOverlay.classList.remove('show');
 }
 
 function switchTab(tabName) {
@@ -407,7 +453,7 @@ function setupFileExplorer() {
     
     // Disable save button to prevent double-submit
     elements.saveFileBtn.disabled = true;
-    elements.saveFileBtn.textContent = 'Saving...';
+    elements.saveFileBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
     
     try {
       const res = await fetch('/api/save-file', {
@@ -432,12 +478,12 @@ function setupFileExplorer() {
       } else {
         showToast(`Failed to save file: ${data.error}`, 'error');
         elements.saveFileBtn.disabled = false;
-        elements.saveFileBtn.textContent = 'Save Changes';
+        elements.saveFileBtn.innerHTML = '<i class="bi bi-check-lg"></i> <span class="btn-label">Save</span>';
       }
     } catch (err) {
       showToast('Error sending file save request', 'error');
       elements.saveFileBtn.disabled = false;
-      elements.saveFileBtn.textContent = 'Save Changes';
+      elements.saveFileBtn.innerHTML = '<i class="bi bi-check-lg"></i> <span class="btn-label">Save</span>';
     }
   });
 }
@@ -643,21 +689,22 @@ function renderShopifyProductsTable() {
     const status = p.status === 'active' ? 'active' : 'draft';
     
     const tr = document.createElement('tr');
+    const imgSrc = escapeHtml(p.image?.src || 'https://placehold.co/50x50?text=Shopify');
     tr.innerHTML = `
       <td>
         <div class="product-cell">
-          <img src="${p.image?.src || 'https://placehold.co/50x50?text=Shopify'}" class="product-img" onerror="this.src='https://placehold.co/50x50?text=Shopify'">
+          <img src="${imgSrc}" class="product-img" onerror="this.src='https://placehold.co/50x50?text=Shopify'" alt="${escapeHtml(p.title)}">
           <div class="product-info">
-            <span class="product-title-txt">${p.title}</span>
-            <span class="product-id-txt">ID: ${p.id}</span>
+            <span class="product-title-txt">${escapeHtml(p.title)}</span>
+            <span class="product-id-txt">ID: ${escapeHtml(String(p.id))}</span>
           </div>
         </div>
       </td>
-      <td><span class="sku-badge">${sku}</span></td>
-      <td>$${price}</td>
+      <td><span class="sku-badge">${escapeHtml(sku)}</span></td>
+      <td>$${escapeHtml(price)}</td>
       <td style="font-weight: 600;">${qty}</td>
       <td>${p.variants.length}</td>
-      <td><span class="data-badge ${status === 'active' ? 'badge-success' : 'badge-warning'}">${status}</span></td>
+      <td><span class="data-badge ${status === 'active' ? 'badge-success' : 'badge-warning'}">${escapeHtml(status)}</span></td>
     `;
     elements.tableProducts.appendChild(tr);
   });
@@ -704,12 +751,12 @@ function renderMiraklOffersTable() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="sku-badge">${sku}</span></td>
-      <td style="font-weight: 500;">${title}</td>
-      <td>$${price}</td>
-      <td style="font-weight: 600;">${qty}</td>
-      <td><span class="data-badge badge-success">${stateCode} (New)</span></td>
-      <td>${availableStart}</td>
+      <td><span class="sku-badge">${escapeHtml(sku)}</span></td>
+      <td style="font-weight: 500;">${escapeHtml(title)}</td>
+      <td>$${escapeHtml(price)}</td>
+      <td style="font-weight: 600;">${escapeHtml(String(qty))}</td>
+      <td><span class="data-badge badge-success">${escapeHtml(String(stateCode))} (New)</span></td>
+      <td>${escapeHtml(availableStart)}</td>
     `;
     elements.tableOffers.appendChild(tr);
   });
@@ -765,12 +812,12 @@ function renderMiraklOrdersTable() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="sku-badge" style="background-color: var(--color-accent-glow); color: #fff;">${orderId}</span></td>
-      <td style="font-weight: 500;">${customer}</td>
-      <td class="font-mono" style="font-size: 0.78rem;">${email}</td>
-      <td>${lineCount} item(s)</td>
-      <td style="font-weight: 600;">$${totalAmount}</td>
-      <td><span class="data-badge ${statusClass}">${orderState}</span></td>
+      <td><span class="sku-badge" style="background-color: var(--color-accent-glow); color: #fff;">${escapeHtml(orderId)}</span></td>
+      <td style="font-weight: 500;">${escapeHtml(customer)}</td>
+      <td class="font-mono" style="font-size: 0.78rem;">${escapeHtml(email)}</td>
+      <td>${escapeHtml(String(lineCount))} item(s)</td>
+      <td style="font-weight: 600;">$${escapeHtml(String(totalAmount))}</td>
+      <td><span class="data-badge ${statusClass}">${escapeHtml(orderState)}</span></td>
     `;
     elements.tableOrders.appendChild(tr);
   });
@@ -845,12 +892,20 @@ function renderLogs() {
   filteredLogs.forEach(log => {
     const timeStr = new Date(log.timestamp).toLocaleTimeString();
     const entry = document.createElement('div');
-    entry.className = `log-entry ${log.type}`;
-    entry.innerHTML = `
-      <span class="log-time">[${timeStr}]</span>
-      <span class="log-tag">[${log.type}]</span>
-      <span class="log-msg">${log.message}</span>
-    `;
+    entry.className = `log-entry ${escapeHtml(log.type)}`;
+    // Use textContent for message to prevent XSS from server log data
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'log-time';
+    timeSpan.textContent = `[${timeStr}]`;
+    const tagSpan = document.createElement('span');
+    tagSpan.className = 'log-tag';
+    tagSpan.textContent = `[${log.type}]`;
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'log-msg';
+    msgSpan.textContent = log.message;
+    entry.appendChild(timeSpan);
+    entry.appendChild(tagSpan);
+    entry.appendChild(msgSpan);
     elements.logTerminal.appendChild(entry);
   });
   
@@ -1124,16 +1179,16 @@ function renderMonitorTable() {
         <div class="product-cell">
           ${imageHtml}
           <div class="product-info">
-            <span class="product-title-txt">${p.title}</span>
-            <span class="product-id-txt" style="font-size: 0.72rem;">${p.variantTitle ? `Variant: ${p.variantTitle}` : 'Default Variant'}</span>
+            <span class="product-title-txt">${escapeHtml(p.title)}</span>
+            <span class="product-id-txt" style="font-size: 0.72rem;">${p.variantTitle ? `Variant: ${escapeHtml(p.variantTitle)}` : 'Default Variant'}</span>
           </div>
         </div>
       </td>
-      <td><span class="sku-badge">${p.sku}</span></td>
-      <td><span class="${priceCellClass}">${shopPriceText}</span></td>
-      <td><span class="${priceCellClass}">${mirPriceText}</span></td>
-      <td><span class="${stockCellClass}" style="font-weight: 600;">${shopStockText}</span></td>
-      <td><span class="${stockCellClass}" style="font-weight: 600;">${mirStockText}</span></td>
+      <td><span class="sku-badge">${escapeHtml(p.sku)}</span></td>
+      <td><span class="${priceCellClass}">${escapeHtml(shopPriceText)}</span></td>
+      <td><span class="${priceCellClass}">${escapeHtml(mirPriceText)}</span></td>
+      <td><span class="${stockCellClass}" style="font-weight: 600;">${escapeHtml(String(shopStockText))}</span></td>
+      <td><span class="${stockCellClass}" style="font-weight: 600;">${escapeHtml(String(mirStockText))}</span></td>
       <td>${badgeHtml}</td>
       <td>${actionBtnHtml}</td>
     `;

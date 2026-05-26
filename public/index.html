@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shopify-Mirakl Integration Hub</title>
+  <meta name="description" content="SyncHub – Real-time Shopify to Nordstrom Mirakl marketplace integration dashboard. Monitor products, offers, orders and sync status.">
+  <title>SyncHub | Shopify-Mirakl Integration Hub</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,10 +15,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-mode">
+
+  <!-- Mobile Overlay (closes sidebar on tap-outside) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <div class="app-container">
-    
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo-area">
           <div class="logo-icon">
@@ -28,54 +33,58 @@
             <span class="sub-logo">Shopify-Mirakl</span>
           </div>
         </div>
+        <!-- Mobile close button -->
+        <button class="icon-btn sidebar-close-btn" id="sidebar-close-btn" aria-label="Close sidebar">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
       
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Main navigation">
         <ul>
           <li>
-            <a href="#" class="nav-item active" data-tab="dashboard">
+            <a href="#" class="nav-item active" data-tab="dashboard" aria-label="Dashboard">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Dashboard</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="monitor">
+            <a href="#" class="nav-item" data-tab="monitor" aria-label="Sync Monitor">
               <i class="bi bi-arrow-left-right"></i>
               <span>Sync Monitor</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="explorer">
+            <a href="#" class="nav-item" data-tab="explorer" aria-label="File Explorer">
               <i class="bi bi-folder-fill"></i>
               <span>File Explorer</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="products">
+            <a href="#" class="nav-item" data-tab="products" aria-label="Shopify Products">
               <i class="bi bi-bag-check-fill"></i>
               <span>Shopify Products</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="offers">
+            <a href="#" class="nav-item" data-tab="offers" aria-label="Mirakl Offers">
               <i class="bi bi-tags-fill"></i>
               <span>Mirakl Offers</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="orders">
+            <a href="#" class="nav-item" data-tab="orders" aria-label="Mirakl Orders">
               <i class="bi bi-cart-fill"></i>
               <span>Mirakl Orders</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="settings">
+            <a href="#" class="nav-item" data-tab="settings" aria-label="Settings">
               <i class="bi bi-gear-fill"></i>
               <span>Sync Settings</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-item" data-tab="logs">
+            <a href="#" class="nav-item" data-tab="logs" aria-label="System Logs">
               <i class="bi bi-terminal-fill"></i>
               <span>System Logs</span>
             </a>
@@ -107,20 +116,26 @@
       <!-- Top Navigation / Header -->
       <header class="top-header">
         <div class="breadcrumb-container">
+          <!-- Mobile hamburger -->
+          <button class="icon-btn hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+            <i class="bi bi-list"></i>
+          </button>
           <span class="breadcrumb-active" id="current-view-title">Dashboard</span>
         </div>
         <div class="header-actions">
-          <button id="trigger-sync-menu-btn" class="btn btn-primary">
-            <i class="bi bi-lightning-charge-fill"></i> Quick Sync <i class="bi bi-chevron-down ms-1"></i>
+          <button id="trigger-sync-menu-btn" class="btn btn-primary" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span class="btn-label">Quick Sync</span>
+            <i class="bi bi-chevron-down"></i>
           </button>
-          <div class="dropdown-menu" id="sync-dropdown">
-            <a href="#" class="dropdown-item" id="sync-products-action">
+          <div class="dropdown-menu" id="sync-dropdown" role="menu">
+            <a href="#" class="dropdown-item" id="sync-products-action" role="menuitem">
               <i class="bi bi-bag-plus"></i> Sync Shopify Products to Mirakl
             </a>
-            <a href="#" class="dropdown-item" id="sync-inventory-action">
+            <a href="#" class="dropdown-item" id="sync-inventory-action" role="menuitem">
               <i class="bi bi-boxes"></i> Sync Inventory Levels to Mirakl
             </a>
-            <a href="#" class="dropdown-item" id="sync-orders-action">
+            <a href="#" class="dropdown-item" id="sync-orders-action" role="menuitem">
               <i class="bi bi-cart-check"></i> Pull Mirakl Orders to Shopify
             </a>
           </div>
@@ -131,10 +146,10 @@
       <div class="page-container">
         
         <!-- View: Dashboard -->
-        <section id="view-dashboard" class="tab-content active">
+        <section id="view-dashboard" class="tab-content active" aria-label="Dashboard">
           <div class="dashboard-grid">
             
-            <!-- Cards Section -->
+            <!-- KPI Cards -->
             <div class="kpi-grid">
               <div class="kpi-card glass">
                 <div class="kpi-icon icon-shopify">
@@ -184,8 +199,8 @@
               <!-- Mirakl Config Status -->
               <div class="panel-card glass half-width">
                 <div class="panel-header">
-                  <h2><i class="bi bi-cloud-check-fill icon-mirakl"></i> Nordstrom Mirakl API Connection</h2>
-                  <span class="status-badge" id="mirakl-badge">Checking...</span>
+                  <h2><i class="bi bi-cloud-check-fill icon-mirakl"></i> Nordstrom Mirakl API</h2>
+                  <span class="status-badge badge-loading" id="mirakl-badge">Checking...</span>
                 </div>
                 <div class="panel-body">
                   <ul class="info-list">
@@ -213,8 +228,8 @@
               <!-- Shopify Config Status -->
               <div class="panel-card glass half-width">
                 <div class="panel-header">
-                  <h2><i class="bi bi-cloud-check-fill icon-shopify"></i> Shopify API Connection</h2>
-                  <span class="status-badge" id="shopify-badge">Checking...</span>
+                  <h2><i class="bi bi-cloud-check-fill icon-shopify"></i> Shopify API</h2>
+                  <span class="status-badge badge-loading" id="shopify-badge">Checking...</span>
                 </div>
                 <div class="panel-body">
                   <ul class="info-list">
@@ -287,16 +302,15 @@
         </section>
 
         <!-- View: File Explorer -->
-        <section id="view-explorer" class="tab-content">
+        <section id="view-explorer" class="tab-content" aria-label="File Explorer">
           <div class="explorer-layout glass">
             <!-- Sidebar: File Tree -->
             <div class="explorer-sidebar">
               <div class="explorer-header-sm">
                 <span>PROJECT FILES</span>
-                <button id="refresh-tree-btn" class="icon-btn" title="Refresh files"><i class="bi bi-arrow-clockwise"></i></button>
+                <button id="refresh-tree-btn" class="icon-btn" title="Refresh files" aria-label="Refresh file tree"><i class="bi bi-arrow-clockwise"></i></button>
               </div>
               <div id="file-tree" class="file-tree">
-                <!-- Populated dynamically -->
                 <div class="loading-spinner-center"><div class="spinner"></div></div>
               </div>
             </div>
@@ -308,31 +322,30 @@
                   <span id="active-file-path">Select a file to view or edit</span>
                 </div>
                 <div class="code-actions">
-                  <button id="edit-file-btn" class="btn btn-secondary btn-sm" disabled>
-                    <i class="bi bi-pencil-square"></i> Edit
+                  <button id="edit-file-btn" class="btn btn-secondary btn-sm" disabled aria-label="Edit file">
+                    <i class="bi bi-pencil-square"></i> <span class="btn-label">Edit</span>
                   </button>
-                  <button id="save-file-btn" class="btn btn-success btn-sm hidden">
-                    <i class="bi bi-check-lg"></i> Save Changes
+                  <button id="save-file-btn" class="btn btn-success btn-sm hidden" aria-label="Save file">
+                    <i class="bi bi-check-lg"></i> <span class="btn-label">Save</span>
                   </button>
-                  <button id="cancel-edit-btn" class="btn btn-secondary btn-sm hidden">
+                  <button id="cancel-edit-btn" class="btn btn-secondary btn-sm hidden" aria-label="Cancel edit">
                     Cancel
                   </button>
                 </div>
               </div>
               <div class="code-editor-area">
-                <!-- Textarea for editing, pre/code for display -->
                 <div id="code-display-wrapper" class="code-display-wrapper">
                   <pre><code id="code-content" class="language-js"></code></pre>
                 </div>
-                <textarea id="code-edit-area" class="code-edit-area hidden" spellcheck="false"></textarea>
+                <textarea id="code-edit-area" class="code-edit-area hidden" spellcheck="false" aria-label="Code editor"></textarea>
               </div>
             </div>
           </div>
         </section>
 
         <!-- View: Product Sync Monitor -->
-        <section id="view-monitor" class="tab-content">
-          <!-- Summary Cards / Filters -->
+        <section id="view-monitor" class="tab-content" aria-label="Sync Monitor">
+          <!-- Summary Cards -->
           <div class="monitor-summary-bar glass mb-4">
             <div class="summary-stat">
               <span class="stat-num text-success" id="monitor-count-synced">0</span>
@@ -359,19 +372,19 @@
             <div class="panel-header search-header">
               <h2>Unified Product Sync Monitor</h2>
               <div class="header-filters">
-                <div class="search-box me-3">
+                <div class="search-box">
                   <i class="bi bi-search"></i>
-                  <input type="text" id="search-monitor" placeholder="Search by SKU or Title...">
+                  <input type="text" id="search-monitor" placeholder="Search by SKU or Title..." aria-label="Search monitor">
                 </div>
-                <select id="filter-monitor-status" class="form-control-sm">
-                  <option value="all">All Sync Statuses</option>
+                <select id="filter-monitor-status" class="form-control-sm" aria-label="Filter by sync status">
+                  <option value="all">All Statuses</option>
                   <option value="synced">Synced Only</option>
-                  <option value="mismatch">Discrepancies Only</option>
-                  <option value="shopify_only">Only on Shopify</option>
-                  <option value="mirakl_only">Only on Mirakl</option>
+                  <option value="mismatch">Discrepancies</option>
+                  <option value="shopify_only">Shopify Only</option>
+                  <option value="mirakl_only">Mirakl Only</option>
                 </select>
-                <button id="btn-sync-all-mismatched" class="btn btn-primary btn-sm ms-3">
-                  <i class="bi bi-arrow-repeat"></i> Sync Mismatched
+                <button id="btn-sync-all-mismatched" class="btn btn-primary btn-sm">
+                  <i class="bi bi-arrow-repeat"></i> <span class="btn-label">Sync Mismatched</span>
                 </button>
               </div>
             </div>
@@ -399,13 +412,13 @@
         </section>
 
         <!-- View: Shopify Products -->
-        <section id="view-products" class="tab-content">
+        <section id="view-products" class="tab-content" aria-label="Shopify Products">
           <div class="panel-card glass">
             <div class="panel-header search-header">
               <h2>Shopify Product Catalog</h2>
               <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="search-products" placeholder="Search by Title or SKU...">
+                <input type="text" id="search-products" placeholder="Search by Title or SKU..." aria-label="Search products">
               </div>
             </div>
             <div class="panel-body table-responsive">
@@ -430,13 +443,13 @@
         </section>
 
         <!-- View: Mirakl Offers -->
-        <section id="view-offers" class="tab-content">
+        <section id="view-offers" class="tab-content" aria-label="Mirakl Offers">
           <div class="panel-card glass">
             <div class="panel-header search-header">
               <h2>Mirakl Market Offers</h2>
               <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="search-offers" placeholder="Search by SKU or Title...">
+                <input type="text" id="search-offers" placeholder="Search by SKU or Title..." aria-label="Search offers">
               </div>
             </div>
             <div class="panel-body table-responsive">
@@ -461,13 +474,13 @@
         </section>
 
         <!-- View: Mirakl Orders -->
-        <section id="view-orders" class="tab-content">
+        <section id="view-orders" class="tab-content" aria-label="Mirakl Orders">
           <div class="panel-card glass">
             <div class="panel-header search-header">
               <h2>Mirakl Marketplace Orders</h2>
               <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="search-orders" placeholder="Search by Order ID or Customer...">
+                <input type="text" id="search-orders" placeholder="Search by Order ID or Customer..." aria-label="Search orders">
               </div>
             </div>
             <div class="panel-body table-responsive">
@@ -492,24 +505,24 @@
         </section>
 
         <!-- View: System Logs -->
-        <section id="view-logs" class="tab-content">
+        <section id="view-logs" class="tab-content" aria-label="System Logs">
           <div class="panel-card glass log-panel">
             <div class="panel-header">
               <h2>Sync Execution Terminal</h2>
               <div class="log-actions">
-                <div class="filter-group">
+                <div class="filter-group" role="group" aria-label="Log filter">
                   <button class="btn btn-secondary btn-sm active" data-log-filter="all">All</button>
                   <button class="btn btn-secondary btn-sm" data-log-filter="info">Info</button>
                   <button class="btn btn-secondary btn-sm" data-log-filter="success">Success</button>
                   <button class="btn btn-secondary btn-sm" data-log-filter="error">Errors</button>
                 </div>
                 <button id="clear-logs-btn" class="btn btn-danger btn-sm">
-                  <i class="bi bi-trash"></i> Clear Console
+                  <i class="bi bi-trash"></i> <span class="btn-label">Clear</span>
                 </button>
               </div>
             </div>
             <div class="panel-body no-padding">
-              <div id="log-terminal" class="log-terminal">
+              <div id="log-terminal" class="log-terminal" aria-live="polite" aria-label="System logs">
                 <!-- Log entries added here -->
               </div>
             </div>
@@ -517,12 +530,12 @@
         </section>
 
         <!-- View: Settings -->
-        <section id="view-settings" class="tab-content">
+        <section id="view-settings" class="tab-content" aria-label="Settings">
           <div class="panel-card glass">
             <div class="panel-header">
-              <h2><i class="bi bi-sliders text-primary"></i> Integration Settings</h2>
+              <h2><i class="bi bi-sliders text-accent"></i> Integration Settings</h2>
               <button id="save-settings-btn" class="btn btn-success">
-                <i class="bi bi-save-fill"></i> Save Configuration
+                <i class="bi bi-save-fill"></i> <span class="btn-label">Save Config</span>
               </button>
             </div>
             <div class="panel-body">
@@ -564,7 +577,7 @@
                     </div>
                     <div class="form-group">
                       <label for="setting-shopify-token">Access Token</label>
-                      <input type="password" id="setting-shopify-token" class="form-control" placeholder="shpat_...">
+                      <input type="password" id="setting-shopify-token" class="form-control" placeholder="shpat_..." autocomplete="new-password">
                     </div>
                     <div class="form-group">
                       <label for="setting-shopify-client-id">Client ID (API Key)</label>
@@ -572,7 +585,7 @@
                     </div>
                     <div class="form-group">
                       <label for="setting-shopify-client-secret">Client Secret</label>
-                      <input type="password" id="setting-shopify-client-secret" class="form-control" placeholder="Optional Client Secret">
+                      <input type="password" id="setting-shopify-client-secret" class="form-control" placeholder="Optional Client Secret" autocomplete="new-password">
                     </div>
                   </div>
                 </div>
@@ -588,7 +601,7 @@
                     </div>
                     <div class="form-group">
                       <label for="setting-mirakl-key">Mirakl API Key</label>
-                      <input type="password" id="setting-mirakl-key" class="form-control" placeholder="Mirakl API Key">
+                      <input type="password" id="setting-mirakl-key" class="form-control" placeholder="Mirakl API Key" autocomplete="new-password">
                     </div>
                     <div class="form-group">
                       <label for="setting-mirakl-shop-id">Shop ID</label>
@@ -600,7 +613,7 @@
                 <div class="form-section-divider"></div>
 
                 <div class="form-section">
-                  <h3><i class="bi bi-server text-cyan"></i> Server Configuration</h3>
+                  <h3><i class="bi bi-server text-info"></i> Server Configuration</h3>
                   <div class="form-grid">
                     <div class="form-group">
                       <label for="setting-server-port">Server Port</label>
@@ -620,17 +633,17 @@
   </div>
 
   <!-- Notification Toast -->
-  <div class="toast" id="toast">
+  <div class="toast" id="toast" role="alert" aria-live="assertive">
     <i class="bi bi-info-circle-fill" id="toast-icon"></i>
     <span id="toast-message">Notification message</span>
   </div>
 
   <!-- Modal / Overlay for Sync execution -->
-  <div class="modal-overlay" id="sync-modal">
+  <div class="modal-overlay" id="sync-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-card glass">
       <div class="modal-header">
         <h3 id="modal-title">Executing Synchronization</h3>
-        <button class="icon-btn" id="close-modal"><i class="bi bi-x-lg"></i></button>
+        <button class="icon-btn" id="close-modal" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="modal-body text-center">
         <div class="progress-spinner-container">
